@@ -11,33 +11,44 @@
 #include <QWidget>
 #include <QHeaderView>
 #include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
 #include <cstdlib>
+#include <iostream>
 #include "mainwindow.h"
 
 bool connectToDatabase() {
 	QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL");
 	// NEED to replace with environment variables
-	if (std::getenv("DB_HOSTNAME") != "") {
+	if (std::getenv("CONTACTS_DB_HOSTNAME") != "") {
 		db.setHostName(std::getenv("DB_HOSTNAME"));
 	} else {
+		qDebug() << "Environment variable DB_HOSTNAME not set";
+		std::cout << "Environment variable DB_HOSTNAME not set" << std::endl;
 		return false;
 	}
 
-	if (std::getenv("DB_NAME") != "") {
+	if (std::getenv("CONTACTS_DB_NAME") != "") {
 		db.setDatabaseName(std::getenv("DB_NAME"));
 	} else {
+		qDebug() << "Environment variable DB_NAME not set";
+		std::cout << "Environment variable DB_NAME not set" << std::endl;
 		return false;
 	}
 
-	if (std::getenv("DB_USERNAME") != "") {
+	if (std::getenv("CONTACTS_DB_USERNAME") != "") {
 		db.setUserName(std::getenv("DB_USERNAME"));
 	} else {
+		qDebug() << "Environment variable DB_USERNAME not set";
+		std::cout << "Environment variable DB_USERNAME not set" << std::endl;
 		return false;
 	}
 
-	if (std::getenv("DB_PASSWORD") != "") {
+	if (std::getenv("CONTACTS_DB_PASSWORD") != "") {
 		db.setPassword(std::getenv("DB_PASSWORD"));
 	} else {
+		qDebug() << "Environment variable DB_PASSWORD not set";
+		std::cout << "Environment variable DB_PASSWORD not set" << std::endl;
 		return false;
 	}
 
@@ -95,9 +106,19 @@ int main(int argc, char *argv[])
 	QLabel *firstLabel = new QLabel(QObject::tr("First Name"));
 	QLabel *lastLabel = new QLabel(QObject::tr("Last Name"));
 
+	// Create widgets for data entry
+	QLineEdit *firstEdit = new QLineEdit();
+	QLineEdit *lastEdit = new QLineEdit();
+
+	// Create a button
+	QPushButton *addContactButton = new QPushButton("&Add Contact");
+
 	// Add labels to data entry layout
 	dataEntryLayout->addWidget(firstLabel, 0, 0);
+	dataEntryLayout->addWidget(firstEdit, 0, 1);
 	dataEntryLayout->addWidget(lastLabel, 1, 0);
+	dataEntryLayout->addWidget(lastEdit, 1, 1);
+	dataEntryLayout->addWidget(addContactButton, 2, 1);
 
 	// Hide the vertical header of the table
 	view->verticalHeader()->hide();
