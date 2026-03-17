@@ -30,6 +30,9 @@ MainWindow::MainWindow(QWidget *parent)
 	// Create a vertical box layout for the main window contents
 	mainLayout = new QVBoxLayout(centralWidget);
 
+	// Set database driver for default database connection
+	db = QSqlDatabase::addDatabase("QPSQL");
+
 	// Add data entry and display widgets to the central widget layout
 	mainLayout->addWidget(dataEntryFrame);
 	mainLayout->addWidget(contactsView);
@@ -96,13 +99,14 @@ void MainWindow::openDbConnectionDialog()
 
 	loginDialog->setLayout(dbConnectLayout);
 
-	while (1) {
+	while (!db.isOpen()) {
 		int value = loginDialog->exec();
 
 #ifdef DEBUG
 		std::cerr << "The value returned from the dialog was " << value << std::endl;
 #endif
 
+		// User clicked "Ok"
 		if (value == 1)
 		{
 			// How do i get the values from these form fields?
@@ -139,13 +143,24 @@ void MainWindow::openDbConnectionDialog()
 			std::cerr << "The DB password entered was " << dbPasswordEntry->text().toStdString() << std::endl;
 #endif
 
+			if (!db.open()) {
+				qDebug() << "Database connection failed:" << db.lastError().text();
+				this->mainStatusBar->showMessage(db.lastError().text());
+				continue;
+			} else {
+				this->mainStatusBar->showMessage("Connected");
+			}
+
 			break;
 		}
+		// User clicked "Cancel" or hit <Esc>
 		else
 		{
 			break;
 		}
 	}
+
+	this->mainStatusBar->showMessage("Connected");
 }
 
 // Method to create the actions
