@@ -40,6 +40,8 @@ private:
 	void createMenus();
 	void setupTableView();
 	void setupDataEntryFrame();
+	void refreshContactsView();
+	void disconnectDb();
 
 	QStatusBar *mainStatusBar;
 	QMenu *fileMenu;
@@ -47,6 +49,7 @@ private:
 	QAction *aboutAct;
 	QAction *quitAct;
 	QAction *connectAct;
+	QAction *disconnectAct;
 	QDialog *loginDialog;
 	QWidget *centralWidget;
 	QFrame *dataEntryFrame;

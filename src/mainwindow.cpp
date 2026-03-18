@@ -37,6 +37,8 @@ MainWindow::MainWindow(QWidget *parent)
 	mainLayout->addWidget(dataEntryFrame);
 	mainLayout->addWidget(contactsView);
 
+	openDbConnectionDialog();
+
 	resize(800, 600);
 }
 
@@ -61,6 +63,13 @@ void MainWindow::createStatusBar()
  */
 void MainWindow::openDbConnectionDialog()
 {
+	if (db.isOpen()) {
+		// Tell user the DB is already connected and return
+		QMessageBox::information(this, tr("Yo"), tr("Already connected to the database"));
+		mainStatusBar->showMessage("Connected");
+		return;
+	}
+
 	loginDialog = new QDialog(this);
 	loginDialog->setWindowTitle("Enter Database Credentials");
 	// loginDialog->resize(400,300);
@@ -73,12 +82,15 @@ void MainWindow::openDbConnectionDialog()
 	QLabel *dbNameLabel = new QLabel(tr("DB Name:"));
 	QLabel *dbUsernameLabel = new QLabel(tr("DB Username:"));
 	QLabel *dbPasswordLabel = new QLabel(tr("DB Password:"));
-	QLineEdit *dbHostnameEntry = new QLineEdit();
-	QLineEdit *dbNameEntry = new QLineEdit();
+	QLineEdit *dbHostnameEntry = new QLineEdit(tr("localhost"));
+	QLineEdit *dbNameEntry = new QLineEdit(tr("contacts"));
 	QLineEdit *dbUsernameEntry = new QLineEdit();
 	QLineEdit *dbPasswordEntry = new QLineEdit();
+
+	// Configure text entry fields
 	dbPasswordEntry->setEchoMode(QLineEdit::Password);
 
+	// Set up some buttons for the dialog box (Ok & Cancel)
 	QDialogButtonBox *dbConnectButtonBox = new QDialogButtonBox(
 		QDialogButtonBox::Cancel | QDialogButtonBox::Ok,
 		Qt::Horizontal, loginDialog
@@ -97,12 +109,15 @@ void MainWindow::openDbConnectionDialog()
 	dbConnectLayout->addWidget(dbPasswordEntry, 3, 1);
 	dbConnectLayout->addWidget(dbConnectButtonBox, 4, 0, 1, 2, Qt::AlignCenter);
 
+	// Ensure username field has the keyboard focus
+	dbUsernameEntry->setFocus();
+
 	loginDialog->setLayout(dbConnectLayout);
 
 	while (!db.isOpen()) {
 		int value = loginDialog->exec();
-
 #ifdef DEBUG
+
 		std::cerr << "The value returned from the dialog was " << value << std::endl;
 #endif
 
@@ -111,18 +126,22 @@ void MainWindow::openDbConnectionDialog()
 		{
 			// How do i get the values from these form fields?
 			if (dbHostnameEntry->text().isEmpty()) {
+				mainStatusBar->showMessage("Database hostname required", 0);
 				continue;
 			}
 
 			if (dbNameEntry->text().isEmpty()) {
+				mainStatusBar->showMessage("Database name required");
 				continue;
 			}
 
 			if (dbUsernameEntry->text().isEmpty()) {
+				mainStatusBar->showMessage("Database username required");
 				continue;
 			}
 
 			if (dbPasswordEntry->text().isEmpty()) {
+				mainStatusBar->showMessage("Database password required");
 				continue;
 			}
  
@@ -135,8 +154,8 @@ void MainWindow::openDbConnectionDialog()
 			db.setDatabaseName(dbNameEntry->text());
 			db.setUserName(dbUsernameEntry->text());
 			db.setPassword(dbPasswordEntry->text());
-
 #ifdef DEBUG
+
 			std::cerr << "The DB hostname entered was " << dbHostnameEntry->text().toStdString() << std::endl;
 			std::cerr << "The DB name entered was " << dbNameEntry->text().toStdString() << std::endl;
 			std::cerr << "The DB username entered was " << dbUsernameEntry->text().toStdString() << std::endl;
@@ -160,7 +179,13 @@ void MainWindow::openDbConnectionDialog()
 		}
 	}
 
-	this->mainStatusBar->showMessage("Connected");
+	if (db.isOpen()) {
+		// Update the status bar
+		this->mainStatusBar->showMessage("Connected");
+
+		// Refresh the data in the table view
+		this->refreshContactsView();
+	}
 }
 
 // Method to create the actions
@@ -177,11 +202,24 @@ void MainWindow::createActions()
 	quitAct->setStatusTip(tr("Exit the application"));
 	connect(quitAct, &QAction::triggered, this, &MainWindow::quit);
 
-	// Create another action
+	// Create the "Connect..." action 
 	connectAct = new QAction(tr("&Connect..."), this);
 	connectAct->setStatusTip(tr("Connect to the database"));
 	connect(connectAct, &QAction::triggered, this, &MainWindow::openDbConnectionDialog);
 
+	// Create "Disconnect" action
+	disconnectAct = new QAction(tr("&Disconnect"), this);
+	disconnectAct->setStatusTip(tr("Disconnect from the database"));
+	connect(disconnectAct, &QAction::triggered, this, &MainWindow::disconnectDb);
+}
+
+void MainWindow::disconnectDb()
+{
+	if (db.isOpen()) {
+		db.close();
+	}
+
+	mainStatusBar->showMessage("Disconnected");
 }
 
 // Method to create the menus
@@ -190,6 +228,7 @@ void MainWindow::createMenus()
 	// Get the main window's menu bar and add menus
 	fileMenu = menuBar()->addMenu(tr("&File"));
 	fileMenu->addAction(connectAct);
+	fileMenu->addAction(disconnectAct);
 	fileMenu->addAction(quitAct);
 
 	helpMenu = menuBar()->addMenu(tr("&Help"));
@@ -208,53 +247,6 @@ void MainWindow::about()
 void MainWindow::quit()
 {
 	QApplication::quit();
-}
-
-/*
- * Connects to the database
- */
-bool MainWindow::connectToDatabase() {
-	db = QSqlDatabase::addDatabase("QPSQL");
-	// NEED to replace with environment variables
-	if (std::getenv("CONTACTS_DB_HOSTNAME") != nullptr) {
-		db.setHostName(std::getenv("CONTACTS_DB_HOSTNAME"));
-	} else {
-		qDebug() << "Environment variable CONTACTS_DB_HOSTNAME not set";
-		std::cout << "Environment variable CONTACTS_DB_HOSTNAME not set" << std::endl;
-		return false;
-	}
-
-	if (std::getenv("CONTACTS_DB_NAME") != nullptr) {
-		db.setDatabaseName(std::getenv("CONTACTS_DB_NAME"));
-	} else {
-		qDebug() << "Environment variable CONTACTS_DB_NAME not set";
-		std::cout << "Environment variable CONTACTS_DB_NAME not set" << std::endl;
-		return false;
-	}
-
-	if (std::getenv("CONTACTS_DB_USERNAME") != nullptr) {
-		db.setUserName(std::getenv("CONTACTS_DB_USERNAME"));
-	} else {
-		qDebug() << "Environment variable CONTACTS_DB_USERNAME not set";
-		std::cout << "Environment variable CONTACTS_DB_USERNAME not set" << std::endl;
-		return false;
-	}
-
-	if (std::getenv("CONTACTS_DB_PASSWORD") != nullptr) {
-		db.setPassword(std::getenv("CONTACTS_DB_PASSWORD"));
-	} else {
-		qDebug() << "Environment variable CONTACTS_DB_PASSWORD not set";
-		std::cout << "Environment variable CONTACTS_DB_PASSWORD not set" << std::endl;
-		return false;
-	}
-
-	if (!db.open()) {
-		qDebug() << "Database connection failed:" << db.lastError().text();
-		return false;
-	} else {
-		qDebug() << "Database connected successfully.";
-		return true;
-	}
 }
 
 /*
@@ -289,6 +281,24 @@ void MainWindow::setupDataEntryFrame()
 
 }
 
+void MainWindow::refreshContactsView()
+{
+	QSqlQueryModel *model = new QSqlQueryModel();
+
+	model->setQuery("SELECT id, first_name, last_name FROM public.contacts ORDER BY id ASC");
+
+	if (!model->lastError().isValid())
+	{
+		mainStatusBar->showMessage(model->lastError().text());
+	}
+	// Set human-readable headers (optional)
+	model->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
+	model->setHeaderData(1, Qt::Horizontal, QObject::tr("First Name"));
+	model->setHeaderData(2, Qt::Horizontal, QObject::tr("Last Name"));
+
+	contactsView->setModel(model);
+}
+
 /*
  * Prepare the area of the main window that will display the contacts
  */
@@ -297,9 +307,17 @@ void MainWindow::setupTableView()
 	// Create a QSqlQueryModel to hold the data
 	QSqlQueryModel *model = new QSqlQueryModel();
 
+	// Create a QTableView and set the model
+	contactsView = new QTableView();
+	contactsView->horizontalHeader()->setStretchLastSection(true);
+	contactsView->resizeColumnsToContents();
+
+	// Hide the vertical header of the table
+	contactsView->verticalHeader()->hide();
+
 	if (db.isOpen())
 	{
-		model->setQuery("SELECT id, first_name, last_name FROM public.contacts ORDER BY id ASC");
+		this->refreshContactsView();
 	}
 
 	// Check for query errors
@@ -308,21 +326,8 @@ void MainWindow::setupTableView()
 		this->quit();
 	}
 
-	// Set human-readable headers (optional)
-	model->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
-	model->setHeaderData(1, Qt::Horizontal, QObject::tr("First Name"));
-	model->setHeaderData(2, Qt::Horizontal, QObject::tr("Last Name"));
-
-	// Create a QTableView and set the model
-	contactsView = new QTableView();
-	contactsView->setModel(model);
-	contactsView->horizontalHeader()->setStretchLastSection(true);
-	contactsView->resizeColumnsToContents();
-
-	// Hide the vertical header of the table
-	contactsView->verticalHeader()->hide();
-
 #ifdef DEBUG
+
 	std::cerr << "Made it here" << std::endl;
 #endif
 }
