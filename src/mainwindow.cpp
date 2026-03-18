@@ -163,8 +163,7 @@ void MainWindow::openDbConnectionDialog()
 
 			if (!db.open()) {
 				qDebug() << "Database connection failed:" << db.lastError().text();
-				QMessageBox::warning(this, tr("Connection Error"), db.lastError().text());
-				this->mainStatusBar->showMessage(db.lastError().text());
+				QMessageBox::warning(this, db.lastError().driverText(), db.lastError().databaseText());
 				continue;
 			} else {
 				this->mainStatusBar->showMessage("Connected");
@@ -276,6 +275,7 @@ void MainWindow::setupDataEntryFrame()
 
 	// Create a button
 	QPushButton *addContactButton = new QPushButton("&Add Contact");
+	connect(addContactButton, &QPushButton::clicked, this, &MainWindow::notImplemented);
 
 	// Add labels to data entry layout
 	dataEntryLayout->addWidget(firstLabel, 0, 0);
@@ -286,6 +286,10 @@ void MainWindow::setupDataEntryFrame()
 
 }
 
+void MainWindow::notImplemented() {
+	QMessageBox::warning(this, "Oops!", "This function is not implemented");
+}
+
 void MainWindow::refreshContactsView()
 {
 	QSqlQueryModel *model = new QSqlQueryModel();
@@ -294,7 +298,7 @@ void MainWindow::refreshContactsView()
 
 	if (model->lastError().isValid())
 	{
-		QMessageBox::warning(this, tr("Huh?"), model->lastError().text());
+		QMessageBox::warning(this, model->lastError().driverText(), model->lastError().databaseText());
 		db.close();
 		mainStatusBar->showMessage(tr("Disconnected"));
 		return;

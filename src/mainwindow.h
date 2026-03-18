@@ -42,6 +42,7 @@ private:
 	void setupDataEntryFrame();
 	void refreshContactsView();
 	void disconnectDb();
+	void notImplemented();
 
 	QStatusBar *mainStatusBar;
 	QMenu *fileMenu;
