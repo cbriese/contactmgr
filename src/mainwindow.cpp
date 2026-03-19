@@ -125,22 +125,30 @@ void MainWindow::openDbConnectionDialog()
 		{
 			// How do i get the values from these form fields?
 			if (dbHostnameEntry->text().isEmpty()) {
-				QMessageBox::warning(this, "Connection Status", tr("Database hostname required"));
+				QMessageBox::warning(this, "Connection Status",
+					tr("Database hostname required")
+				);
 				continue;
 			}
 
 			if (dbNameEntry->text().isEmpty()) {
-				QMessageBox::warning(this, "Connection Status", tr("Database name required"));
+				QMessageBox::warning(this, "Connection Status",
+					tr("Database name required")
+				);
 				continue;
 			}
 
 			if (dbUsernameEntry->text().isEmpty()) {
-				QMessageBox::warning(this, "Connection Status", tr("Database username required"));
+				QMessageBox::warning(this, "Connection Status",
+					tr("Database username required")
+				);
 				continue;
 			}
 
 			if (dbPasswordEntry->text().isEmpty()) {
-				QMessageBox::warning(this, "Connection Status", tr("Database password required"));
+				QMessageBox::warning(this, "Connection Status",
+					tr("Database password required")
+				);
 				continue;
 			}
  
@@ -155,15 +163,21 @@ void MainWindow::openDbConnectionDialog()
 			db.setPassword(dbPasswordEntry->text());
 #ifdef DEBUG
 
-			std::cerr << "The DB hostname entered was " << dbHostnameEntry->text().toStdString() << std::endl;
-			std::cerr << "The DB name entered was " << dbNameEntry->text().toStdString() << std::endl;
-			std::cerr << "The DB username entered was " << dbUsernameEntry->text().toStdString() << std::endl;
-			std::cerr << "The DB password entered was " << dbPasswordEntry->text().toStdString() << std::endl;
+			std::cerr << "The DB hostname entered was " <<
+				dbHostnameEntry->text().toStdString() << std::endl;
+			std::cerr << "The DB name entered was "<<
+				dbNameEntry->text().toStdString() << std::endl;
+			std::cerr << "The DB username entered was " <<
+				dbUsernameEntry->text().toStdString() << std::endl;
+			std::cerr << "The DB password entered was " <<
+				dbPasswordEntry->text().toStdString() << std::endl;
 #endif
 
 			if (!db.open()) {
 				qDebug() << "Database connection failed:" << db.lastError().text();
-				QMessageBox::warning(this, db.lastError().driverText(), db.lastError().databaseText());
+				QMessageBox::warning(this, db.lastError().driverText(),
+					db.lastError().databaseText()
+				);
 				continue;
 			} else {
 				this->mainStatusBar->showMessage("Connected");
@@ -298,7 +312,9 @@ void MainWindow::refreshContactsView()
 
 	if (model->lastError().isValid())
 	{
-		QMessageBox::warning(this, model->lastError().driverText(), model->lastError().databaseText());
+		QMessageBox::warning(this, model->lastError().driverText(),
+			model->lastError().databaseText()
+		);
 		db.close();
 		mainStatusBar->showMessage(tr("Disconnected"));
 		return;
