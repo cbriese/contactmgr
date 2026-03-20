@@ -20,7 +20,7 @@
 #include <QPushButton>
 #include <QDialogButtonBox>
 #include <QString>
-#include <QCalendarWidget>
+#include <QDateEdit>
 #include <iostream>
 
 class MainWindow : public QMainWindow

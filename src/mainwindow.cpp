@@ -92,12 +92,15 @@ void MainWindow::createOrEditContact(const int contact_id)
 	QLineEdit *phone2Edit = new QLineEdit();
 	QLineEdit *email1Edit = new QLineEdit();
 	QLineEdit *email2Edit = new QLineEdit();
-	QCalendarWidget *bdayCalendar = new QCalendarWidget();
+	QDateEdit *bdayEdit = new QDateEdit();
 
 	phone1Edit->setInputMask("999-999-9999");
 	phone2Edit->setInputMask("999-999-9999");
 	stateEdit->setInputMask(">AA");
 	zipEdit->setInputMask("99999");
+
+	bdayEdit->setDisplayFormat("MM-dd-yyyy");
+	bdayEdit->clear();
 
 	QDialogButtonBox *contactButtonBox = new QDialogButtonBox(
 		QDialogButtonBox::Cancel | QDialogButtonBox::Ok,
@@ -111,6 +114,8 @@ void MainWindow::createOrEditContact(const int contact_id)
 	contactLayout->addWidget(firstEdit, 1, 0);
 	contactLayout->addWidget(lastLabel, 2, 0);
 	contactLayout->addWidget(lastEdit, 3, 0);
+	contactLayout->addWidget(bdayLabel, 4, 0);
+	contactLayout->addWidget(bdayEdit, 5, 0);
 	contactLayout->addWidget(address1Label, 0, 2, 1, 3);
 	contactLayout->addWidget(address1Edit, 1, 2, 1, 3);
 	contactLayout->addWidget(address2Label, 2, 2, 1, 3);
@@ -129,8 +134,6 @@ void MainWindow::createOrEditContact(const int contact_id)
 	contactLayout->addWidget(email1Edit, 5, 6);
 	contactLayout->addWidget(email2Label, 6, 6);
 	contactLayout->addWidget(email2Edit, 7, 6);
-	contactLayout->addWidget(bdayLabel, 4, 0);
-	contactLayout->addWidget(bdayCalendar, 5, 0, 5, 1);
 	
 	contactLayout->addWidget(contactButtonBox, 10, 0, 1, 7, Qt::AlignCenter);
 
@@ -351,6 +354,8 @@ void MainWindow::createToolbars()
 	fileToolBar = addToolBar(tr("File"));
 	fileToolBar->addAction(newContactAct);
 	fileToolBar->setAllowedAreas(Qt::TopToolBarArea);
+	fileToolBar->setFloatable(false);
+	fileToolBar->setMovable(false);
 }
 
 // Method to create the actions
