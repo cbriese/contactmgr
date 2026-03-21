@@ -17,11 +17,8 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QPushButton>
 #include <QDialogButtonBox>
 #include <QString>
-#include <QDateEdit>
-#include <QCheckBox>
 #include <iostream>
 
 class MainWindow : public QMainWindow
@@ -36,7 +33,7 @@ public:
 private slots:
 	void about();
 	void quit();
-	void createOrEditContact(const int);
+	void createOrEditContact();
 
 private:
 	bool connectToDatabase();
@@ -59,9 +56,7 @@ private:
 	QAction *disconnectAct;
 	QAction *newContactAct;
 	QDialog *loginDialog;
-	QDialog *contactDialog;
 	QWidget *centralWidget;
-	QFrame *dataEntryFrame;
 	QSqlDatabase db;
 	QTableView *contactsView;
 	QVBoxLayout *mainLayout;

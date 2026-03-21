@@ -1,5 +1,6 @@
 #include <QApplication>
 #include "mainwindow.h"
+#include "contactdialog.h"
 
 // Constructor for the main window
 MainWindow::MainWindow(QWidget *parent)
@@ -56,106 +57,9 @@ void MainWindow::createStatusBar()
 /*
  * Create a dialog box to create or modify a contact.
  */
-void MainWindow::createOrEditContact(const int contact_id)
+void MainWindow::createOrEditContact()
 {
-	// Create a frame to old the data entry widgets
-	contactDialog = new QDialog(this);
-
-	contactDialog->setWindowTitle("Create Contact");
-
-	// Create a layout for the data entry widgets
-	QGridLayout *contactLayout = new QGridLayout(contactDialog);
-
-	// Create labels for data entry
-	QLabel *firstLabel = new QLabel(QObject::tr("First Name:"));
-	QLabel *lastLabel = new QLabel(QObject::tr("Last Name:"));
-	QLabel *address1Label = new QLabel(QObject::tr("Address 1:"));
-	QLabel *address2Label = new QLabel(QObject::tr("Address 2:"));
-	QLabel *cityLabel = new QLabel(QObject::tr("City:"));
-	QLabel *stateLabel = new QLabel(QObject::tr("State:"));
-	QLabel *zipLabel = new QLabel(QObject::tr("Zip Code:"));
-	QLabel *phone1Label = new QLabel(QObject::tr("Phone #1:"));
-	QLabel *phone2Label = new QLabel(QObject::tr("Phone #2:"));
-	QLabel *email1Label = new QLabel(QObject::tr("E-mail #1:"));
-	QLabel *email2Label = new QLabel(QObject::tr("E-mail #2:"));
-	QLabel *bdayLabel = new QLabel(QObject::tr("Birthday:"));
-	QLabel *bdaySaveLabel = new QLabel(QObject::tr("Save Birthday?"));
-
-	// Create widgets for data entry
-	QLineEdit *firstEdit = new QLineEdit();
-	QLineEdit *lastEdit = new QLineEdit();
-	QLineEdit *address1Edit = new QLineEdit();
-	QLineEdit *address2Edit = new QLineEdit();
-	QLineEdit *cityEdit = new QLineEdit();
-	QLineEdit *stateEdit = new QLineEdit();
-	QLineEdit *zipEdit = new QLineEdit();
-	QLineEdit *phone1Edit = new QLineEdit();
-	QLineEdit *phone2Edit = new QLineEdit();
-	QLineEdit *email1Edit = new QLineEdit();
-	QLineEdit *email2Edit = new QLineEdit();
-	QDateEdit *bdayEdit = new QDateEdit();
-	QCheckBox *bdaySaveCheckbox = new QCheckBox();
-
-	// Apply input masks to various fields to control what the user enters
-	phone1Edit->setInputMask("999-999-9999");
-	phone2Edit->setInputMask("999-999-9999");
-	stateEdit->setInputMask(">AA");
-	zipEdit->setInputMask("99999");
-
-	bdayEdit->setDisplayFormat("MM-dd-yyyy");
-	bdayEdit->clear();
-
-	QDialogButtonBox *contactButtonBox = new QDialogButtonBox(
-		QDialogButtonBox::Cancel | QDialogButtonBox::Ok,
-		Qt::Horizontal, contactDialog
-	);
-	connect(contactButtonBox, &QDialogButtonBox::accepted, contactDialog, &QDialog::accept);
-	connect(contactButtonBox, &QDialogButtonBox::rejected, contactDialog, &QDialog::reject);
-
-	// Layout the dialog box
-
-	contactLayout->addWidget(firstLabel, 0, 0);
-	contactLayout->addWidget(firstEdit, 1, 0);
-	contactLayout->addWidget(lastLabel, 2, 0);
-	contactLayout->addWidget(lastEdit, 3, 0);
-	contactLayout->addWidget(bdayLabel, 4, 0);
-	contactLayout->addWidget(bdayEdit, 5, 0);
-	contactLayout->addWidget(bdaySaveLabel, 6, 0);
-	contactLayout->addWidget(bdaySaveCheckbox, 7, 0);
-
-	contactLayout->addWidget(address1Label, 0, 2, 1, 3);
-	contactLayout->addWidget(address1Edit, 1, 2, 1, 3);
-	contactLayout->addWidget(address2Label, 2, 2, 1, 3);
-	contactLayout->addWidget(address2Edit, 3, 2, 1, 3);
-	contactLayout->addWidget(cityLabel, 4, 2);
-	contactLayout->addWidget(cityEdit, 5, 2);
-	contactLayout->addWidget(stateLabel, 4, 4);
-	contactLayout->addWidget(stateEdit, 5, 4);
-	contactLayout->addWidget(zipLabel, 6, 2);
-	contactLayout->addWidget(zipEdit, 7, 2);
-
-	contactLayout->addWidget(phone1Label, 0, 6);
-	contactLayout->addWidget(phone1Edit, 1, 6);
-	contactLayout->addWidget(phone2Label, 2, 6);
-	contactLayout->addWidget(phone2Edit, 3, 6);
-	contactLayout->addWidget(email1Label, 4, 6);
-	contactLayout->addWidget(email1Edit, 5, 6);
-	contactLayout->addWidget(email2Label, 6, 6);
-	contactLayout->addWidget(email2Edit, 7, 6);
-	
-	contactLayout->addWidget(contactButtonBox, 10, 0, 1, 7, Qt::AlignCenter);
-
-	// Set minimum widths for the columns of the layout
-	contactLayout->setColumnMinimumWidth(0, 150);
-	contactLayout->setColumnMinimumWidth(1, 5);
-	contactLayout->setColumnMinimumWidth(2, 125);
-	contactLayout->setColumnMinimumWidth(3, 5);
-	contactLayout->setColumnMinimumWidth(4, 125);
-	contactLayout->setColumnMinimumWidth(5, 5);
-	contactLayout->setColumnMinimumWidth(6, 300);
-
-	// Put focus on the first name field
-	firstEdit->setFocus();
+	ContactDialog *contactDialog = new ContactDialog(this);
 
 	// To store the result of the dialog box
 	int value;
@@ -167,7 +71,7 @@ void MainWindow::createOrEditContact(const int contact_id)
 		if (value == 1)
 		{
 			// Check if the user provided a first name
-			if (firstEdit->text().isEmpty())
+			if (contactDialog->firstName().isEmpty())
 			{
 				// No? Try again.
 				QMessageBox::warning(this, "Required Field Missing",
@@ -177,7 +81,7 @@ void MainWindow::createOrEditContact(const int contact_id)
 			}
 
 			// Check if the user provided a last name
-			if (lastEdit->text().isEmpty())
+			if (contactDialog->lastName().isEmpty())
 			{
 				// No? Try again.
 				QMessageBox::warning(this, "Required Field Missing",
@@ -194,20 +98,24 @@ void MainWindow::createOrEditContact(const int contact_id)
 			rec.remove(0);
 
 			// Pretty blindly assign values to the fields from the form data
-			rec.setValue(0, firstEdit->text());
-			rec.setValue(1, lastEdit->text());
-			rec.setValue(2, address1Edit->text());
-			rec.setValue(3, address2Edit->text());
-			rec.setValue(4, cityEdit->text());
-			rec.setValue(5, stateEdit->text());
-			rec.setValue(6, zipEdit->text());
-			rec.setValue(7, phone1Edit->text());
-			rec.setValue(8, phone2Edit->text());
-			rec.setValue(9, email1Edit->text());
-			rec.setValue(10, email2Edit->text());
-			if (bdaySaveCheckbox->checkState() == Qt::Checked) {
+			rec.setValue(0, contactDialog->firstName());
+			rec.setValue(1, contactDialog->lastName());
+			rec.setValue(2, contactDialog->address1());
+			rec.setValue(3, contactDialog->address2());
+			rec.setValue(4, contactDialog->city());
+			rec.setValue(5, contactDialog->state());
+			rec.setValue(6, contactDialog->zipCode());
+			if (contactDialog->phone1() != "--") {
+				rec.setValue(7, contactDialog->phone1());
+			}
+			if (contactDialog->phone2() != "--") {
+				rec.setValue(8, contactDialog->phone2());
+			}
+			rec.setValue(9, contactDialog->email1());
+			rec.setValue(10, contactDialog->email2());
+			if (contactDialog->saveBirthday()) {
 				// Save the birthday
-				rec.setValue(11, bdayEdit->date());
+				rec.setValue(11, contactDialog->birthday());
 			} else {
 				rec.remove(11);
 			}
