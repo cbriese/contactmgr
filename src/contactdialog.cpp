@@ -4,6 +4,7 @@
 ContactDialog::ContactDialog(QWidget *parent)
     : QDialog(parent)
 {
+	setWindowTitle(tr("New Contact"));
 	setupUI();
 	setModal(true);
 }
