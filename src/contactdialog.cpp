@@ -121,6 +121,11 @@ void ContactDialog::setupUI()
 	editPhone1->setValidator(phoneNumberValidator);
 	editPhone2->setValidator(phoneNumberValidator);
 
+	QRegularExpression rx2("^[a-zA-Z0-9][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+	QRegularExpressionValidator *emailValidator = new QRegularExpressionValidator(rx2, this);
+	editEmail1->setValidator(emailValidator);
+	editEmail2->setValidator(emailValidator);
+
 	// Connect input widgets to validation routine
 	connect(editFirstName, &QLineEdit::textChanged, this, &ContactDialog::validateInput);
 	connect(editLastName, &QLineEdit::textChanged, this, &ContactDialog::validateInput);
