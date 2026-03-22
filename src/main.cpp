@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 	w.show();
 
 	// Open the database connection dialog
-	w.openDbConnectionDialog();
+	w.connectToDatabase();
 
 	// Run it
 	return a.exec();

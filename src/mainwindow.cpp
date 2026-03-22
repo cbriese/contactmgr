@@ -56,6 +56,11 @@ void MainWindow::createStatusBar()
 }
 
 void MainWindow::modifyContact() {
+
+	if (!db.isOpen()) {
+		QMessageBox::warning(this, tr("Connection Status"), tr("Not connected to a database"));
+	}
+
 	QItemSelectionModel *selectionModel = contactsView->selectionModel();
 
 	int highlightedRow;
@@ -150,8 +155,13 @@ void MainWindow::modifyContact() {
 /*
  * Create a dialog box to create or modify a contact.
  */
-void MainWindow::createOrEditContact()
+void MainWindow::createContact()
 {
+	if (!db.isOpen()) {
+		QMessageBox::warning(this, tr("Connection Status"), tr("Not connected to a database"));
+		return;
+	}
+
 	ContactDialog *contactDialog = new ContactDialog(this, nullptr);
 
 	// To store the result of the dialog box
@@ -255,7 +265,7 @@ void MainWindow::createOrEditContact()
  * to enter the hostname, database name, username,
  * and password for the database connection
  */
-void MainWindow::openDbConnectionDialog()
+void MainWindow::connectToDatabase()
 {
 	if (db.isOpen()) {
 		// Tell user the DB is already connected and return
@@ -379,7 +389,7 @@ void MainWindow::createActions()
 	// Create the "Connect..." action 
 	connectAct = new QAction(tr("&Connect..."), this);
 	connectAct->setStatusTip(tr("Connect to the database"));
-	connect(connectAct, &QAction::triggered, this, &MainWindow::openDbConnectionDialog);
+	connect(connectAct, &QAction::triggered, this, &MainWindow::connectToDatabase);
 
 	// Create "Disconnect" action
 	disconnectAct = new QAction(tr("&Disconnect"), this);
@@ -390,7 +400,7 @@ void MainWindow::createActions()
 	newContactAct = new QAction(QIcon::fromTheme(QIcon::ThemeIcon::DocumentNew), tr("&New"), this);
 	newContactAct->setShortcuts(QKeySequence::New);
 	newContactAct->setStatusTip(tr("Create a new contact"));
-	connect(newContactAct, &QAction::triggered, this, &MainWindow::createOrEditContact);
+	connect(newContactAct, &QAction::triggered, this, &MainWindow::createContact);
 
 	// Create "Delete Contact" action
 	deleteContactAct = new QAction(
@@ -412,6 +422,11 @@ void MainWindow::createActions()
 }
 
 void MainWindow::deleteContact() {
+
+	if (!db.isOpen()) {
+		QMessageBox::warning(this, tr("Connection Status"), tr("Not connected to a database"));
+	}
+
 	QItemSelectionModel *selectionModel = contactsView->selectionModel();
 
 	QString firstName;
@@ -439,6 +454,10 @@ void MainWindow::deleteContact() {
 
 		// Save to last name
 		lastName = data.toString();
+	}
+	else
+	{
+		return;
 	}
 
 	// Display the message box to confirm deletion and store which button was pressed

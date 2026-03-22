@@ -25,18 +25,17 @@ class MainWindow : public QMainWindow
 public:
 	MainWindow(QWidget *parent = nullptr);
 	~MainWindow();
-	void openDbConnectionDialog();
+	void connectToDatabase();
 
 private slots:
 	void about();
 	void quit();
-	void createOrEditContact();
-	void deleteContact();
 	void notImplemented();
+	void createContact();
+	void deleteContact();
 	void modifyContact();
 
 private:
-	bool connectToDatabase();
 	void createStatusBar();
 	void createActions();
 	void createToolbars();
