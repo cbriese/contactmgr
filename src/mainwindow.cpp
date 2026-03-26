@@ -2,6 +2,7 @@
 #include "mainwindow.h"
 #include "logindialog.h"
 #include "contactdialog.h"
+#include "datedelegate.h"
 
 // Constructor for the main window
 MainWindow::MainWindow(QWidget *parent)
@@ -582,6 +583,10 @@ void MainWindow::refreshContactsView()
 		contactsView->setColumnWidth(10, 200);
 		contactsView->setColumnWidth(11, 200);
 		contactsView->setColumnWidth(12, 150);
+
+		QString customDateFormat = "MM-dd-yyyy";
+		DateDelegate *dateDelegate = new DateDelegate(customDateFormat, contactsView);
+		contactsView->setItemDelegateForColumn(12, dateDelegate);
 
 		contactsView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 		contactsView->setSelectionBehavior(QAbstractItemView::SelectRows);
