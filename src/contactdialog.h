@@ -11,6 +11,7 @@
 #include <QPushButton>
 #include <QSqlRecord>
 #include <QSqlField>
+#include <iostream>
 
 class ContactDialog : public QDialog
 {
@@ -18,6 +19,7 @@ class ContactDialog : public QDialog
 
 private slots:
 	void validateInput();
+	void enableOrDisableEditBirthday();
 
 private:
 	QLabel *labelFirstName;
@@ -52,6 +54,7 @@ private:
 	QSqlRecord *contactRec;
 
 	void setupUI();
+	bool isValidAddress();
 
 public:
 	ContactDialog(QWidget *parent = nullptr, QSqlRecord *rec = nullptr);

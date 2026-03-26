@@ -35,8 +35,8 @@ void ContactDialog::setupUI()
 	// Create edit widgets
 	editFirstName = new QLineEdit(this);
 	editLastName = new QLineEdit(this);
-	editBirthday = new QDateEdit(this);
 	checkSaveBirthday = new QCheckBox(this);
+	editBirthday = new QDateEdit(this);
 	editAddress1 = new QLineEdit(this);
 	editAddress2 = new QLineEdit(this);
 	editCity = new QLineEdit(this);
@@ -109,8 +109,8 @@ void ContactDialog::setupUI()
 	}
 
 	// Apply input masks
-	editState->setInputMask(">AA");
-	editZipCode->setInputMask("99999");
+	// editState->setInputMask(">AA");
+	// editZipCode->setInputMask("99999");
 
 	editBirthday->setDisplayFormat("MM-dd-yyyy");
 	editBirthday->clear();
@@ -126,6 +126,18 @@ void ContactDialog::setupUI()
 	editEmail1->setValidator(emailValidator);
 	editEmail2->setValidator(emailValidator);
 
+	QRegularExpression rx3("^[\\w -]+$");
+	QRegularExpressionValidator *cityValidator = new QRegularExpressionValidator(rx3, this);
+	editCity->setValidator(cityValidator);
+
+	QRegularExpression rx4("^[A-Z]{2}$");
+	QRegularExpressionValidator *stateValidator = new QRegularExpressionValidator(rx4, this);
+	editState->setValidator(stateValidator);
+
+	QRegularExpression rx5("^\\d{5}(-\\d{4})?$");
+	QRegularExpressionValidator *zipCodeValidator = new QRegularExpressionValidator(rx5, this);
+	editZipCode->setValidator(zipCodeValidator);
+
 	// Connect input widgets to validation routine
 	connect(editFirstName, &QLineEdit::textChanged, this, &ContactDialog::validateInput);
 	connect(editLastName, &QLineEdit::textChanged, this, &ContactDialog::validateInput);
@@ -139,6 +151,13 @@ void ContactDialog::setupUI()
 	connect(editEmail1, &QLineEdit::textChanged, this, &ContactDialog::validateInput);
 	connect(editEmail2, &QLineEdit::textChanged, this, &ContactDialog::validateInput);
 
+	connect(
+		checkSaveBirthday,
+		&QCheckBox::checkStateChanged,
+		this,
+		&ContactDialog::enableOrDisableEditBirthday
+	);
+
 	// Create a layout
 	QGridLayout *formLayout = new QGridLayout(this);
 
@@ -147,10 +166,10 @@ void ContactDialog::setupUI()
 	formLayout->addWidget(editFirstName, 1, 0);
 	formLayout->addWidget(labelLastName, 2, 0); 
 	formLayout->addWidget(editLastName, 3, 0);
-	formLayout->addWidget(labelBirthday, 4, 0);
-	formLayout->addWidget(editBirthday, 5, 0);
-	formLayout->addWidget(labelSaveBirthday, 6, 0);
-	formLayout->addWidget(checkSaveBirthday, 7, 0);
+	formLayout->addWidget(labelSaveBirthday, 4, 0);
+	formLayout->addWidget(checkSaveBirthday, 5, 0);
+	formLayout->addWidget(labelBirthday, 6, 0);
+	formLayout->addWidget(editBirthday, 7, 0);
 
 	// Add second logical column (comprised of 3 columns)
 	formLayout->addWidget(labelAddress1, 0, 2, 1, 3);
@@ -191,20 +210,167 @@ void ContactDialog::setupUI()
 
 	// Disable the "Ok" button if we are creating a contact
 	// and allow the input validation to enable it
-	if (contactRec == nullptr) {
-		buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
-	}
+	//if (contactRec == nullptr) {
+	//	buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
+	// }
+
+	this->enableOrDisableEditBirthday();
+	this->validateInput();
 
 }
 
 void ContactDialog::validateInput() {
 	bool allInputValid;
 
+	if (editFirstName->text().isEmpty()) {
+		editFirstName->setStyleSheet("QLineEdit { background-color: #fc9292; }");
+	} else {
+		editFirstName->setStyleSheet("QLineEdit { background-color: white; }");
+	}
+
+	if (editLastName->text().isEmpty()) {
+		editLastName->setStyleSheet("QLineEdit { background-color: #fc9292; }");
+	} else {
+		editLastName->setStyleSheet("QLineEdit { background-color: white; }");
+	}
+
+	if (editPhone1->hasAcceptableInput() || editPhone1->text().isEmpty()) {
+		editPhone1->setStyleSheet("QLineEdit { background-color: white; }");
+	} else {
+		editPhone1->setStyleSheet("QLineEdit { background-color: #fc9292; }");
+	}
+
+	if (editPhone2->hasAcceptableInput() || editPhone2->text().isEmpty()) {
+		editPhone2->setStyleSheet("QLineEdit { background-color: white; }");
+	} else {
+		editPhone2->setStyleSheet("QLineEdit { background-color: #fc9292; }");
+	}
+
+	if (editEmail1->hasAcceptableInput() || editEmail1->text().isEmpty()) {
+		editEmail1->setStyleSheet("QLineEdit { background-color: white; }");
+	} else {
+		editEmail1->setStyleSheet("QLineEdit { background-color: #fc9292; }");
+	}
+
+	if (editEmail2->hasAcceptableInput() || editEmail2->text().isEmpty()) {
+		editEmail2->setStyleSheet("QLineEdit { background-color: white; }");
+	} else {
+		editEmail2->setStyleSheet("QLineEdit { background-color: #fc9292; }");
+	}
+
 	allInputValid = !editFirstName->text().isEmpty() &&
 		!editLastName->text().isEmpty() &&
 		(editPhone1->hasAcceptableInput() || editPhone1->text().isEmpty()) &&
-		(editPhone2->hasAcceptableInput() || editPhone2->text().isEmpty());
+		(editPhone2->hasAcceptableInput() || editPhone2->text().isEmpty()) &&
+		(editEmail1->hasAcceptableInput() || editEmail1->text().isEmpty()) &&
+		(editEmail2->hasAcceptableInput() || editEmail2->text().isEmpty()) &&
+		this->isValidAddress();
 	buttons->button(QDialogButtonBox::Ok)->setEnabled(allInputValid);
+}
+
+bool ContactDialog::isValidAddress() {
+	if (
+		editAddress1->text().isEmpty() &&
+		editAddress2->text().isEmpty() &&
+		editCity->text().isEmpty() &&
+		editState->text().isEmpty() &&
+		editZipCode->text().isEmpty()
+	) {
+		editAddress1->setStyleSheet("QLineEdit { background-color: white; }");
+		editAddress2->setStyleSheet("QLineEdit { background-color: white; }");
+		editCity->setStyleSheet("QLineEdit { background-color: white; }");
+		editState->setStyleSheet("QLineEdit { background-color: white; }");
+		editZipCode->setStyleSheet("QLineEdit { background-color: white; }");
+		return(true);
+	}
+
+	if (editAddress1->text().isEmpty()) {
+		int too_many = 0;
+
+		if (!editAddress2->text().isEmpty()) {
+			editAddress2->setStyleSheet("QLineEdit { background-color: #fc9292; }");
+#ifdef DEBUG
+			std::cerr << "address 1 populated when should not be" << std::endl;
+#endif
+			too_many++;
+		}
+
+		if (!editCity->text().isEmpty()) {
+			editCity->setStyleSheet("QLineEdit { background-color: #fc9292; }");
+#ifdef DEBUG
+			std::cerr << "city populated when should not be" << std::endl;
+#endif
+			too_many++;
+			too_many++;
+		}
+
+		if (!editState->text().isEmpty()) {
+			editState->setStyleSheet("QLineEdit { background-color: #fc9292; }");
+#ifdef DEBUG
+			std::cerr << "state populated when should not be" << std::endl;
+#endif
+			too_many++;
+			too_many++;
+		}
+
+		if (!editZipCode->text().isEmpty()) {
+			editZipCode->setStyleSheet("QLineEdit { background-color: #fc9292; }");
+#ifdef DEBUG
+			std::cerr << "zip code populated when should not be" << std::endl;
+#endif
+			too_many++;
+			too_many++;
+		}
+
+		if (too_many) {
+			return(false);
+		}
+	} else {
+		int missing = 0;
+
+		if (editCity->text().isEmpty() || !editCity->hasAcceptableInput()) {
+			editCity->setStyleSheet("QLineEdit { background-color: #fc9292; }");
+#ifdef DEBUG
+			std::cerr << "city empty or invalid input" << std::endl;
+#endif
+			missing++;
+		} else {
+			editCity->setStyleSheet("QLineEdit { background-color; white; }");
+		}
+
+		if (editState->text().isEmpty() || !editState->hasAcceptableInput()) {
+			editState->setStyleSheet("QLineEdit { background-color: #fc9292; }");
+#ifdef DEBUG
+			std::cerr << "state empty or invalid input" << std::endl;
+#endif
+			missing++;
+		} else {
+			editState->setStyleSheet("QLineEdit { background-color: white; }");
+		}
+
+		if (editZipCode->text().isEmpty() || !editZipCode->hasAcceptableInput()) {
+			editZipCode->setStyleSheet("QLineEdit { background-color: #fc9292; }");
+#ifdef DEBUG
+			std::cerr << "zip code empty or invalid input" << std::endl;
+#endif
+			missing++;
+		} else {
+			editZipCode->setStyleSheet("QLineEdit { background-color: white }");
+		}
+
+		if (missing) {
+			return(false);
+		}
+	}
+	return(true);
+}
+
+void ContactDialog::enableOrDisableEditBirthday() {
+	if (this->checkSaveBirthday->checkState() == Qt::Checked) {
+		this->editBirthday->setDisabled(false);
+	} else {
+		this->editBirthday->setDisabled(true);
+	}
 }
 
 void ContactDialog::setContact(QSqlRecord *record) {
